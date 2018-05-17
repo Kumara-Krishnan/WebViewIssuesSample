@@ -1,0 +1,30 @@
+﻿<Page
+    x:Class="WebViewIssuesSample.WebView.WebViewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WebViewIssuesSample.WebView"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer x:Name="RootScrollViewer" HorizontalScrollBarVisibility="Hidden" HorizontalScrollMode="Disabled">
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Margin="20" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Load Webpage from the same project" Click="Button_Click" Style="{StaticResource TextBlockButtonStyle}"/>
+                <Button Margin="20 0 0 0" Content="Load webpage from a different project" Click="Button_Click_1" Style="{StaticResource TextBlockButtonStyle}"/>
+            </StackPanel>
+            <Border Margin="10" BorderBrush="Black" BorderThickness="1 1 1 1" Grid.Row="1">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock x:Name="ErrorBlock" Visibility="Collapsed"/>
+                    <WebView x:Name="ContentWebView" NavigationFailed="ContentWebView_NavigationFailed" PointerWheelChanged="OnWebViewPointerWheelChanged" MinHeight="500"
+                     ScriptNotify="OnWebContentScriptNotify" DefaultBackgroundColor="White"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>

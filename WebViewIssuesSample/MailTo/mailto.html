@@ -1,0 +1,65 @@
+﻿<html>
+<head>
+    <style>
+        table {
+            border-width: 1px;
+            border-style: outset;
+            border-color: gray;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+            table td {
+                border-width: 1px;
+                border-style: inset;
+                border-color: gray;
+                background-color: white;
+                padding: 4px;
+            }
+    </style>
+</head>
+<body>
+    <h1>Mail To Uri Page</h1>
+    <h3>Please make WebViewIssuesSample app as the default app for mailto protocol in settings->Apps->Default Apps->Email page</h3>
+    <p>
+        The Uri class throws a UriFormatException if there's a comma between the recipients in the mailTo url.<br />
+        Clicking on the last link will throw a UriFormatException.<br />
+        But as per the <a href="https://tools.ietf.org/html/rfc2368" target="_blank">mail to url scheme</a> comma is a valid character between the recipients<br />
+        I have already raised a ticket in both the <a target="_blank" href="https://wpdev.uservoice.com/forums/110705-universal-windows-platform/suggestions/32433580-protocolactivatedeventargs-throws-uriformatexcepti">UWP user voice</a> and the <a target="_blank" href="https://developercommunity.visualstudio.com/content/problem/158911/uri-object-throws-exception-on-valid-mailto-string.html">.NET developer community forum</a>
+    </p>
+    <table>
+        <tbody>
+            <tr>
+                <td>Works</td>
+                <td>
+                    <a href="mailto:majordomo@example.com?body=subscribe%20bamboo-l">mailto:majordomo@example.com?body=subscribe%20bamboo-l</a><br /><br />
+                </td>
+            </tr>
+            <tr>
+                <td>Works</td>
+                <td>
+                    <a href="mailto:joe@example.com?cc=bob@example.com&body=hello">mailto:joe@example.com?cc=bob@example.com&body=hello</a><br /><br />
+                </td>
+            </tr>
+            <tr>
+                <td>Works</td>
+                <td>
+                    <a href="mailto:?to=joe@example.com&cc=bob@example.com&body=hello">mailto:?to=joe@example.com&cc=bob@example.com&body=hello</a><br /><br />
+                </td>
+            </tr>
+            <tr>
+                <td>Works</td>
+                <td>
+                    <a href="mailto:infobot@example.com">mailto:infobot@example.com</a><br /><br />
+                </td>
+            </tr>
+            <tr>
+                <td>Throws UriFormatException</td>
+                <td>
+                    <a href="mailto:someone@example.com,someoneelse@example.com?to=infobot@example.com&cc=infobot@example.com&subject=hello">mailto:someone@example.com,someoneelse@example.com?to=infobot@example.com&cc=infobot@example.com&subject=hello</a><br />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

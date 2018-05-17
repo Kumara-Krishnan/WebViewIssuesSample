@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, Times, serif !important;
+            word-break: break-word;
+            word-wrap: break-word;
+            -ms-content-zooming: none;
+            overflow-y: hidden;
+            margin-left: 0px;
+        }
+
+        div.editable {
+            width: auto !important;
+            height: auto !important;
+            padding-bottom: 30px;
+        }
+    </style>
+    <script>
+        window.onload = init;
+
+        var BLK = "";
+        var NON = "none";
+
+        function $(id) {
+            return document.getElementById(id);
+        }
+
+        function init() {
+            document.addEventListener("keydown", handleKeyDownEvents);
+            document.addEventListener("mousewheel", disableMouseWheelZooming);
+            setPageSize();
+        }
+
+        function disableMouseWheelZooming(event) {
+            if (event.ctrlKey) {
+                stopEvent(event);
+            }
+        }
+
+        function handleKeyDownEvents(event) {
+            switch (event.keyCode) {
+                case 171:
+                case 61:
+                case 107:
+                case 189:
+                case 109:
+                case 251:
+                case 187:
+                    if (event.ctrlKey) {
+                        stopEvent(event);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function stopEvent(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        function setPageSize() {
+            var contentDiv = $("Content");
+            var height = contentDiv.scrollHeight;
+            var width = contentDiv.scrollWidth;
+            var size = { "Ht": height, "Wt": width };  //No I18N
+            externalNotify("SetSize", JSON.stringify(size));
+            return height;
+        }
+
+        function isPatternPresent(value) {
+            var ind1 = value.indexOf('---- On');// NO I18N
+            var ind2 = value.indexOf('============ Forwarded');// NO I18N
+            var ind3;
+            if (ind2 < 0) {
+                ind2 = value.indexOf('---------- Forwarded');// NO I18N
+            }
+            if (ind1 < 0 && ind2 < 0) {
+                ind1 = value.indexOf('<br>"On ');// NO I18N
+                if (ind1 < 0) {
+                    ind1 = value.indexOf('<div>"On');// NO I18N
+                    if (ind1 < 0) {
+                        ind1 = value.indexOf('<br>On ');// NO I18N
+                        if (ind1 < 0) {
+                            ind1 = value.indexOf('<div>On ');// NO I18N
+                        }
+                    }
+                }
+            }
+            if (ind2 > -1 || ind1 > -1)              // pattern is present
+            {
+                if ((ind2 > -1 && ind1 < 0) || ((ind2 > -1) && (ind1 > -1) && (ind2 < ind1))) {
+                    ind3 = ind2;
+                }
+                else {
+                    ind3 = ind1;
+                }
+                return ind3;
+            }
+            else {
+                return -1;
+            }
+        }
+
+        function cloneEl(el) {
+            var element = $(el);
+            var cloned = element.cloneNode(true);
+            cloned.removeAttribute('id'); // No I18N
+            if (NON == cloned.style.display) {
+                cloned.style.display = "";
+            }
+            return cloned;
+        }
+
+        function handleContentForMailThread(contentEl, value) {
+            var touch;
+            contentEl.style.display = "";
+            var ind = value.indexOf("<blockquote");// NO I18N
+            var scrimg = value.indexOf("/ImageDisplay");// NO I18N
+            if (ind < 0) {
+                addContentToElement(contentEl, value);
+                return;
+            }
+            else {
+                var pIndex = isPatternPresent(value);
+                if (pIndex > -1)              // pattern is present
+                {
+                    var bQIndex = value.indexOf("<blockquote", pIndex);// NO I18N
+                    if (bQIndex > -1) {
+                        var i = 0;
+                        var searchFrom = bQIndex;
+                        while (i > -1) {
+                            var sIndex = value.indexOf("<blockquote", searchFrom + 1);// NO I18N
+                            var eIndex = value.indexOf("</blockquote", searchFrom + 1);// NO I18N
+                            if ((sIndex > eIndex) || sIndex < 0) {
+                                searchFrom = eIndex;
+                                i--;
+                            }
+                            else {
+                                searchFrom = sIndex;
+                                i++;
+                            }
+                            if (sIndex < -1 && eIndex < -1) {
+                                addContentToElement(contentEl, value);
+                                //default value
+                                return;
+                            }
+                        }
+                        var b1 = cloneEl('msgviewoption');// NO I18N
+                        var b2 = cloneEl('blockContent');// NO I18N
+                        b2.id = "blockContent";
+                        var df = b2.outerHTML;
+                        var b3 = document.createElement("div");// NO I18N
+                        var endBQ = searchFrom + 13;
+                        var chgVal = value.substring(pIndex, endBQ);
+                        chgVal = '<br><br>'.concat(chgVal);
+                        b3.innerHTML = value.substring(endBQ, value.length);
+
+                        b2.innerHTML = chgVal;
+                        contentEl.innerHTML = value.substring(0, pIndex);
+                        b2.style.display = NON;
+
+                        contentEl.appendChild(b1);
+                        contentEl.appendChild(b2);
+                        contentEl.appendChild(b3);
+                        new touchButton(b1, showOrHideBlockContentClick, true);
+                    }
+                    else {
+                        addContentToElement(contentEl, value);
+                    }
+                }
+                else {
+                    addContentToElement(contentEl, value);
+                }
+            }
+        }
+
+        function ZMgetParentWithTagName(el, tagNameVal) {
+            tagNameVal = tagNameVal.toUpperCase();
+            var curEl = el;
+            while (curEl) {
+                if (curEl.getAttribute(tagNameVal)) {
+                    return curEl;
+                }
+                curEl = curEl.parentNode;
+            }
+            return null;
+        }
+
+        function showOrHideBlockContentClick(element) {
+
+            var block = $('blockContent');// NO I18N
+            if (NON == block.style.display) {
+                block.style.display = BLK;
+            }
+            else {
+                block.style.display = NON;
+            }
+            setPageSize();
+        }
+
+        function addContentToElement(contentEl, value) {
+            contentEl.innerHTML = value;
+        }
+
+        function getTouchX(e) {
+            return e.changedTouches[0].pageX;
+        }
+
+        function getTouchY(e) {
+            return e.changedTouches[0].pageY;
+        }
+
+        function touchButton(element, handler, BGHighLight, preventEventPass) {
+            if (!element) {
+                return;
+            }
+            var tBut = this
+            var touchLocStart = { x: 0, y: 0 };
+            var touchLocEnd = { x: 0, y: 0 };
+            element.addEventListener('touchstart', onFastButtonTouchStart, false); //NO I18N
+            element.addEventListener('touchend', onFastButtonTouchEnd, false); //NO I18N
+            element.addEventListener('click', onFastButtonClick, false); //NO I18N
+            element.addEventListener('touchmove', onFastButtonMove, false); //NO I18N
+            element.style.cursor = "default";
+            element.style.transitionDuration = ".3s";
+            tBut.isTouchEndTriggered = false;
+            function onFastButtonMove(event) {
+                if (preventEventPass) {
+                    event.stopPropagation();
+                }
+            }
+            function onFastButtonTouchStart(event) {
+                var touch = event.touches[0];
+                touchLocStart.x = getTouchX(event)
+                touchLocStart.y = getTouchY(event);
+                if (BGHighLight) {
+                    element.style.backgroundColor = "#D8D8D8";
+                }
+                if (preventEventPass) {
+                    event.stopPropagation();
+                }
+            }
+            function onFastButtonTouchEnd(event) {
+
+                if (preventEventPass) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+                var touch = event.touches[0];
+                touchLocEnd.x = getTouchX(event)
+                touchLocEnd.y = getTouchY(event);
+                if (BGHighLight) {
+                    element.style.backgroundColor = "transparent";
+                }
+                if (Math.abs(touchLocEnd.x - touchLocStart.x) < 3 && Math.abs(touchLocEnd.y - touchLocStart.y) < 3) {
+                    tBut.isTouchEndTriggered = true;
+                    handler(this);
+                    //  event.preventDefault();
+                    // event.stopPropagation();
+                }
+            }
+
+            function onFastButtonClick(event) {
+                if (preventEventPass) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+                if (tBut.isTouchEndTriggered) {
+                    tBut.isTouchEndTriggered = false;
+                }
+                else {
+                    if (BGHighLight) {
+                        element.style.backgroundColor = "transparent";
+                    }
+                    handler(this);
+                }
+            }
+        }
+
+        function SetMessageContent(content) {
+            try {
+                var contentDiv = $("Content");
+
+                handleContentForMailThread(contentDiv, content);
+                setPageSize();
+                var images = document.getElementsByTagName("img");
+                for (var i = 0; i < images.length; i++) {
+                    images[i].onload = setPageSize;
+                }
+            }
+            catch (e) {
+                window.external.notify(e);
+            }
+        }
+
+        function externalNotify(action, param) {
+            var arg = { Action: action, Param: param };
+            window.external.notify(JSON.stringify(arg));
+        }
+
+    </script>
+</head>
+<body id="body">
+    <div onloadeddata="test" class="editable" id="Content">
+        <h1>web page from different project loaded!!</h1>
+    </div>
+
+    <!--Cloneable elements-->
+    <div style="-ms-user-select: none;display:none" zmid="msgviewoption" id="msgviewoption">
+        <div style="font-size:x-large">
+            ...
+        </div>
+    </div>
+
+    <div zmid="blockContent" id="blockContent" style="display:none"></div>
+</body>
+</html>

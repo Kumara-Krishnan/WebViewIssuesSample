@@ -7,8 +7,28 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
     <Grid>
-
+        <SplitView DisplayMode="Inline" IsPaneOpen="True" OpenPaneLength="300">
+            <SplitView.Pane>
+                <ListView Margin="0" ItemClick="OnListViewItemClicked" IsItemClickEnabled="True">
+                    <ListViewItem>
+                        <TextBlock Tag="LoadHTML" Text="Load html file"/>
+                    </ListViewItem>
+                    <ListViewItem>
+                        <TextBlock Tag="LoadMailTo" Text="Mailto protocol issue page"/>
+                    </ListViewItem>
+                </ListView>
+            </SplitView.Pane>
+            <SplitView.Content>
+                <Frame x:Name="AppFrame" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </SplitView.Content>
+        </SplitView>
+        <Grid.Resources>
+            <Style TargetType="Button" BasedOn="{StaticResource TextBlockButtonStyle}">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                <Setter Property="FontSize" Value="30"/>
+            </Style>
+        </Grid.Resources>
     </Grid>
 </Page>
